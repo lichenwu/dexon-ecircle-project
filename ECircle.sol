@@ -5,7 +5,10 @@ contract ECircle{
    address[] private members;
    mapping(address => string) private member_mail;
    mapping(address => uint8) private mapMember;
-	
+
+   // dex amount for every user
+   mapping(address=>uint256) private balance;
+    
    // order related
    uint8 private ORDER_TYPE_LOAN=1;
    uint8 private ORDER_TYPE_LEND=2;
@@ -52,6 +55,16 @@ contract ECircle{
             return false;
         }
         
+    }
+    
+    /*
+    deposit DEX
+    */
+    function deposit(uint256 amount) public returns(uint256){
+        
+        balance[msg.sender] = balance[msg.sender] + amount;
+        
+        return balance[msg.sender];
     }
     
     function postLoan(uint256 amount, uint256 borrowingTime, uint256 round) isValidateUser
@@ -109,6 +122,18 @@ contract ECircle{
     modifier isValidateUser {
         uint8 userAddr = mapMember[msg.sender];
         require(userAddr>0, "You haven't registered yet, please register first.");
+        _;
+    }
+    
+    // modifier validateBalance {
+    //     uint256 amount = balance[msg.sender];
+    //     require(amount>0, "Your DEX amount is 0, please deposit.");
+    //     _;
+    // }
+    
+   function validateBalance private {
+        uint256 amount = balance[msg.sender];
+        require(amount>0, "Your DEX amount is 0, please deposit.");
         _;
     }
 }
