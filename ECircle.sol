@@ -25,7 +25,6 @@ contract ECircle{
    uint256 private orderNoSeq = 0;
 
    struct Order {
-	  origin/lichen
       uint256 orderNo;
       uint8 orderType;
       
