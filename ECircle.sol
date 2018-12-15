@@ -8,43 +8,47 @@ contract ECircle{
 
    // dex amount for every user
    mapping(address=>Wallet) private wallet;
+   
+   // exchange rate for each token to DEX
+   mapping(string=>uint256) private exchangeRate;
     
+   // token type
+   string private TOKEN_TYPE="COB";
+   
    // order related
    uint8 private ORDER_TYPE_LOAN=1;
    uint8 private ORDER_TYPE_LEND=2;
-   
+   uint256 private orderNoSeq = 0;
    uint256[] private ordersSeqArr;
    mapping(uint256 => Order) private orders;
+   uint256[] private borrowOrderNo;
+   uint256[] private supplyOrderNo;
    
-   // deal order related
-   DealOrder[] private dealOrders; // all deal orders
-   mapping(address => DealOrder[]) private userDealOrder;
-   
-   uint256 private current_interest;
-   uint256 private orderNoSeq = 0;
+   //
+   uint256 private interestU=2;
+   uint256 private borrowingInterestRate=3;
+   uint256 private supplyInterestRate=1;
 
    struct Order {
       uint256 orderNo;
-      uint8 orderType;
-      
-      address postUser;
+      uint8 orderType; //ORDER_TYPE_LOAN, ORDER_TYPE_LEND
+      string token;
       uint256 amount;
-      //uint256 interest;
-      uint256 round;
-      uint256 borrowingTime;
-   }
-
-   struct DealOrder {
-      Order order;
-      string interest;
-      address loanUser;
-      address lendUser;
+      uint256 interest;
+      address reqUser;
    }
    
    struct Wallet{
        uint256 dexAmount;
        uint256 tokenAmount;
    }
+    
+    constructor() public{
+        exchangeRate[TOKEN_TYPE]=5;
+        interestU=2;
+        borrowingInterestRate=3;
+        supplyInterestRate=1;
+    }
     
     /*
     Register
@@ -66,54 +70,64 @@ contract ECircle{
     deposit DEX
     */
     function deposit(uint256 amount) public returns(uint256){
-        wallet[msg.sender] = wallet[msg.sender] + amount;
-        return wallet[msg.sender];
+        wallet[msg.sender].dexAmount = wallet[msg.sender].dexAmount + amount;
+        return wallet[msg.sender].dexAmount;
     }
     
-    function postLoan(uint256 amount, uint256 borrowingTime, uint256 round) isValidateUser
-        public returns (uint256){
-        
-        validateDexAmount();
-        return genOrder(amount, borrowingTime, round, ORDER_TYPE_LOAN);
+    /*
+    token amount 
+    */
+    function dexToToken(uint256 dexAmount, string memory tokenType) public view returns (uint256){
+        uint256 tokenAmount = dexAmount * exchangeRate[tokenType];
+        return tokenAmount;
     }
     
-    function postLend(uint256 amount, uint256 borrowingTime, uint256 round) isValidateUser
-        public returns (uint256){
-        
-        validateDexAmount();
-        return genOrder(amount, borrowingTime, round, ORDER_TYPE_LEND);
+    function tokenToDex(uint256 tokenAmount, string memory tokenType) public view returns(uint256){
+        uint256 dexAmount = tokenAmount / exchangeRate[tokenType];
+        return dexAmount;
     }
     
-    function genOrder(uint256 amount, uint256 round, uint256 borrowingTime, uint8 orderType) 
+    /* request */
+    function borrow(string memory tokenType, uint256 amount, uint256 interest) 
+        public
+        isValidateUser
+        validateDexAmount
+        returns (uint256){
+
+        return genOrder(amount, tokenType, interest, ORDER_TYPE_LOAN);
+    }
+    
+    function supply(string memory tokenType, uint256 amount, uint256 interest) 
+        public
+        isValidateUser
+        validateDexAmount
+        returns (uint256){
+        return genOrder(amount, tokenType, interest, ORDER_TYPE_LEND);
+    }
+    
+    function genOrder(uint256 amount, string memory tokenType, uint256 interest, uint8 orderType) 
         private returns (uint256){
         
         Order memory one;
         one.orderNo=genOrderNo();
         one.orderType=orderType;
-        one.postUser = msg.sender;
+        one.token = tokenType;
         one.amount = amount;
-        one.round = round;
-        one.borrowingTime = borrowingTime;
-        
+        one.interest = interest;
+        one.reqUser = msg.sender;
+
         ordersSeqArr.push(one.orderNo);
         orders[one.orderNo]=one;
 
         return orders[one.orderNo].orderNo;
     }
     
-    function makeDeal(uint256 orderNo, uint256 interest)
-        public returns (bool){
-            DealOrder memory dealOrder;
-            dealOrder.order = orders[orderNo];
-            
-    }
-    
     function getOrder(uint256 orderNo) 
-        public view returns(uint256,uint8,uint256,uint256,uint256){
+        public view returns(uint256,uint8, string memory, uint256,uint256,address){
         
         Order memory one = orders[orderNo];
-        
-        return (one.orderNo, one.orderType, one.amount, one.round, one.borrowingTime);
+      
+        return (one.orderNo, one.orderType, one.token, one.amount, one.interest, one.reqUser);
     }
     
     // function getCurrentInterest() view private returns (uint256){
@@ -123,21 +137,16 @@ contract ECircle{
     function genOrderNo()  private returns(uint256){
         return ++orderNoSeq;
     }
-        
+     
+    modifier validateDexAmount{
+        uint256 amount = wallet[msg.sender].dexAmount;
+        require(amount>0, "Your DEX amount is 0, please deposit.");
+        _;
+    }
+    
     modifier isValidateUser {
         uint8 userAddr = mapMember[msg.sender];
         require(userAddr>0, "You haven't registered yet, please register first.");
         _;
-    }
-    
-    // modifier validateBalance {
-    //     uint256 amount = balance[msg.sender];
-    //     require(amount>0, "Your DEX amount is 0, please deposit.");
-    //     _;
-    // }
-    
-   function validateDexAmount() private view returns(bool){
-        uint256 amount = wallet[msg.sender].dexAmount;
-        require(amount>0, "Your DEX amount is 0, please deposit.");
     }
 }
