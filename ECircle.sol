@@ -8,7 +8,7 @@ contract ECircle{
    mapping(address => uint8) private mapMember;
 
    // dex amount for every user
-   mapping(address=>Wallet) private wallet;
+   mapping(address=>Wallet) public userWallets;
     
    // order related
    uint8 private ORDER_TYPE_LOAN=1;
@@ -47,6 +47,9 @@ contract ECircle{
        uint256 tokenAmount;
    }
     
+    constructor() public{
+        
+    }
     /*
     Register
     */
@@ -55,6 +58,12 @@ contract ECircle{
             mapMember[msg.sender] = 1;
             member_mail[msg.sender] = email;
             members.push(msg.sender);
+            
+            Wallet memory w;
+            w.dexAmount = 0;
+            w.tokenAmount = 0;
+            
+            userWallets[msg.sender] = w;
             return true;
         }else{
             // already registered
@@ -66,22 +75,27 @@ contract ECircle{
     /*
     deposit DEX
     */
-    function deposit(uint256 amount) public returns(uint256){
-        wallet[msg.sender] = wallet[msg.sender] + amount;
-        return wallet[msg.sender];
+    function deposit() public payable returns(bool){
+        userWallets[msg.sender].dexAmount = userWallets[msg.sender].dexAmount + msg.value;
+        return true;
+    }
+    
+    
+    /*
+    withdraw DEX
+    */
+    function withdraw() public validateDexAmount payable{
+       msg.sender.transfer(userWallets[msg.sender].dexAmount);
+       userWallets[msg.sender].dexAmount = 0;
     }
     
     function postLoan(uint256 amount, uint256 borrowingTime, uint256 round) isValidateUser
         public returns (uint256){
-        
-        validateDexAmount();
         return genOrder(amount, borrowingTime, round, ORDER_TYPE_LOAN);
     }
     
     function postLend(uint256 amount, uint256 borrowingTime, uint256 round) isValidateUser
         public returns (uint256){
-        
-        validateDexAmount();
         return genOrder(amount, borrowingTime, round, ORDER_TYPE_LEND);
     }
     
@@ -132,15 +146,17 @@ contract ECircle{
         _;
     }
    
-    // modifier validateBalance {
-    //     uint256 amount = balance[msg.sender];
-    //     require(amount>0, "Your DEX amount is 0, please deposit.");
-    //     _;
-    // }
+     modifier validateDexAmount {
+         uint256 amount = userWallets[msg.sender].dexAmount;
+         require(amount>0, "Your DEX amount is 0, please deposit.");
+         _;
+     }
     
-   function validateDexAmount() private view returns(bool){
-        uint256 amount = wallet[msg.sender].dexAmount;
+  /* function validateDexAmount() private view returns(bool){
+        uint256 amount = userWallets[msg.sender].dexAmount;
         require(amount>0, "Your DEX amount is 0, please deposit.");
-    }
+    }*/
+    
+    
 }
 
