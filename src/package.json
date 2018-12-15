@@ -1,0 +1,22 @@
+{
+  "name": "hello-dexon",
+  "version": "0.0.1",
+  "author": "Jimmy Hu",
+  "license": "MIT",
+  "description": "A simple smart contract utilizing DEXON's unbiased randomness.",
+  "homepage": "https://dexon.org",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dexon-foundation/hello-dexon.git"
+  },
+  "scripts": {
+    "postinstall": "touch secret.js",
+    "compile": "dexon-truffle compile",
+    "test": "dexon-truffle test --network development",
+    "migrate": "dexon-truffle migrate --network=testnet"
+  },
+  "dependencies": {
+    "@dexon-foundation/truffle": "^4.1.16",
+    "truffle-hdwallet-provider": "github:trufflesuite/truffle-hdwallet-provider"
+  }
+}
