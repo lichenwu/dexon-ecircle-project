@@ -8,7 +8,7 @@ contract ECircle{
    mapping(address => uint8) private mapMember;
 
    // dex amount for every user
-   mapping(address=>uint256) private balance;
+   mapping(address=>Wallet) private wallet;
     
    // order related
    uint8 private ORDER_TYPE_LOAN=1;
@@ -42,6 +42,11 @@ contract ECircle{
       address loanUser;
       address lendUser;
    }
+   
+   struct Wallet{
+       uint256 dexAmount;
+       uint256 tokenAmount;
+   }
     
     /*
     Register
@@ -63,21 +68,21 @@ contract ECircle{
     deposit DEX
     */
     function deposit(uint256 amount) public returns(uint256){
-        
-        balance[msg.sender] = balance[msg.sender] + amount;
-        
-        return balance[msg.sender];
+        wallet[msg.sender] = wallet[msg.sender] + amount;
+        return wallet[msg.sender];
     }
     
     function postLoan(uint256 amount, uint256 borrowingTime, uint256 round) isValidateUser
         public returns (uint256){
         
+        validateDexAmount();
         return genOrder(amount, borrowingTime, round, ORDER_TYPE_LOAN);
     }
     
     function postLend(uint256 amount, uint256 borrowingTime, uint256 round) isValidateUser
         public returns (uint256){
         
+        validateDexAmount();
         return genOrder(amount, borrowingTime, round, ORDER_TYPE_LEND);
     }
     
@@ -134,10 +139,9 @@ contract ECircle{
     //     _;
     // }
     
-   function validateBalance private {
-        uint256 amount = balance[msg.sender];
+   function validateDexAmount() private view returns(bool){
+        uint256 amount = wallet[msg.sender].dexAmount;
         require(amount>0, "Your DEX amount is 0, please deposit.");
-        _;
     }
 }
 
