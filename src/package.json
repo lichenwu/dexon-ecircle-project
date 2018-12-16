@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@dexon-foundation/truffle": "^4.1.16",
-    "truffle-hdwallet-provider": "github:trufflesuite/truffle-hdwallet-provider"
+    "truffle-hdwallet-provider": "github:trufflesuite/truffle-hdwallet-provider",
+    "vue-router": "^3.0.2"
   }
 }
