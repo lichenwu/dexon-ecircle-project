@@ -37,9 +37,10 @@ contract ECircle{
 
    //GUI event
    event depositEvent(uint256 amountDEX);
-   event supplyEvent(uint256 amountDEX, uint256 amountToken);
-   event borrowEvent(uint256 amountToken);
-   event balEvent(uint256 amountDEX);
+   event supplyEvent(uint256 amountDEX, int256 amountToken);
+   event balanceEvent(uint256 amountDEX, int256 amountToken);
+   event borrowEvent(uint256 amountDEX, int256 amountToken);
+ //  event balEvent(uint256 amountDEX);
 
    struct Order {
       uint256 orderNo;
@@ -52,7 +53,7 @@ contract ECircle{
    
    struct Wallet{
        uint256 dexAmount;
-       uint256 tokenAmount;
+       int256 tokenAmount;
    }
     
     constructor() public{
@@ -108,14 +109,14 @@ contract ECircle{
         return tokenAmount;
     }
     
-    function tokenToDex(string memory tokenType) public view returns(uint256){
+    function tokenToDex(string memory tokenType) public view returns(int256){
+        int256 convDEX = userWallets[msg.sender].tokenAmount / int256(exchangeRate[tokenType]);
+        return convDEX;
+    }
+  /*  function tokenToDex_exec(string memory tokenType) public view returns(uint256){
         uint256 dexAmount = userWallets[msg.sender].tokenAmount / exchangeRate[tokenType];
         return dexAmount;
-    }
-    function tokenToDex_exec(string memory tokenType) public view returns(uint256){
-        uint256 dexAmount = userWallets[msg.sender].tokenAmount / exchangeRate[tokenType];
-        return dexAmount;
-    }
+    }*/
     
     /*function calInterest() private returns uint256{
         //cal borrow
@@ -132,6 +133,8 @@ contract ECircle{
         returns (bool){
         //genOrder(amount, tokenType, interest, ORDER_TYPE_LOAN);
         
+        require(userWallets[msg.sender].dexAmount > amount, "Not enough DEX!");
+        
         //gen order
         Order memory one;
 
@@ -147,12 +150,12 @@ contract ECircle{
         
         userBorrowOrder[msg.sender].push(one);
         
-        require(userWallets[msg.sender].dexAmount > 0, "Not enough DEXXXX!");
         
         userWallets[msg.sender].tokenAmount = userWallets[msg.sender].tokenAmount 
-        - dexToToken(amount,TOKEN_TYPE);
+        - int256(dexToToken(amount,TOKEN_TYPE));
+        userWallets[msg.sender].dexAmount =  userWallets[msg.sender].dexAmount - amount;
         
-        emit borrowEvent(userWallets[msg.sender].tokenAmount);
+        emit borrowEvent(userWallets[msg.sender].dexAmount, userWallets[msg.sender].tokenAmount);
     }
     
     function supply(string memory tokenType, uint256 amount, uint256 interest) 
@@ -160,7 +163,9 @@ contract ECircle{
         isValidateUser
         validateDexAmount
         returns (bool){
-            
+        
+        require(userWallets[msg.sender].dexAmount > amount, "Not enough DEX!");
+        
         //gen order
         Order memory one;
 
@@ -177,12 +182,25 @@ contract ECircle{
         userSupplyOrder[msg.sender].push(one);
         
         //genOrder(amount, tokenType, interest, ORDER_TYPE_LEND)
-        require(userWallets[msg.sender].dexAmount > amount, "Not enough DEXXXX!");
+        
         userWallets[msg.sender].dexAmount =  userWallets[msg.sender].dexAmount - amount;
         userWallets[msg.sender].tokenAmount = userWallets[msg.sender].tokenAmount 
-        + dexToToken(amount,TOKEN_TYPE);
+        + int256(dexToToken(amount,TOKEN_TYPE));
         
         emit supplyEvent(userWallets[msg.sender].dexAmount, userWallets[msg.sender].tokenAmount);
+    }
+    
+    function balance() public {
+        // token to DEX
+        int256 convDEX = tokenToDex(TOKEN_TYPE);
+        if(convDEX < 0){
+            userWallets[msg.sender].dexAmount = userWallets[msg.sender].dexAmount - uint256(tokenToDex(TOKEN_TYPE));
+        }else{
+            userWallets[msg.sender].dexAmount = userWallets[msg.sender].dexAmount + uint256(tokenToDex(TOKEN_TYPE));
+        }
+        
+        userWallets[msg.sender].tokenAmount = 0;
+        emit balanceEvent(userWallets[msg.sender].dexAmount, userWallets[msg.sender].tokenAmount);
     }
     
     function genOrder(uint256 amount, string memory tokenType, uint256 interest, uint8 orderType) 
