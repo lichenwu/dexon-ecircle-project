@@ -11,6 +11,17 @@ export default {
   name: 'app',
   components: {
     Dashboard
+  },
+  mounted() {
+    if(typeof window.dexon === 'undefined') {
+      this.$alert('Please install Dekusan first!');
+    } else {
+      this.$notify({
+        type: 'success',
+        title: 'Dekusan status',
+        message: 'Dekusan detected!',
+      })
+    }
   }
 }
 </script>

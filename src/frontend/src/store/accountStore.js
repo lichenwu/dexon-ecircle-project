@@ -1,14 +1,9 @@
+import contractHandler from '../util/getWeb3';
+
 let state = {
-  web3: {
-    isInjected: false,
-    web3Instance: null,
-    networkId: null,
-    coinbase: null,
-    balance: null,
-    error: null
-  },
   contractInstance: null,
-  contractAddress: 'Input contract address',
+  contractAddress: '',
+  balance: 0,
 };
 
 const actions =  {
@@ -18,8 +13,17 @@ const actions =  {
     }
   },
 
+  async runDeposit({commit}, amount) {
+    await contractHandler.contract.methods.deposit().send({
+      from: window.dexon.defaultAccount,
+      value: amount * ( 10 ** 18 ),
+    });
+    commit('setDeposit', amount)
+  },
+
   setContractAddress({commit}, { contractAddress }) {
     commit('setContractAddress', { contractAddress })
+    contractHandler.contractInit(contractHandler, contractAddress);
   }
 }
 
@@ -27,6 +31,10 @@ const mutations = {
   increment (state) {
     // `state` is the local module state
     state.count++
+  },
+
+  setDeposit(state, amount) {
+    state.balance += amount;
   },
 
   setContractAddress(state, { contractAddress }) {

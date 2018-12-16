@@ -35,14 +35,17 @@ export default {
 		...mapState('accountStore', ['contractAddress']),
 	},
   methods: {
-    ...mapActions('accountStore', ['setContractAddress']),
+    ...mapActions('accountStore', ['setContractAddress', 'runDeposit']),
     clickDeposit() {
       this.$prompt('Please input how many DEX to deposit', 'Deposit', {
         confirmButtonText: 'OK',
         cancelButtonText: 'Cancel',
         inputPattern: /^\d*\.*\d*$/,
         inputErrorMessage: 'Invalid Number'
-      }).then(({ value }) => {
+      }).then(async ({ value }) => {
+
+        this.runDeposit(value)
+
         this.$message({
           type: 'success',
           message: `Your deposit ${value} DEX`,

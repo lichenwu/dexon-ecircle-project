@@ -4,7 +4,7 @@ import ElementUI from 'element-ui';
 import './element-variables.scss';
 import { store } from './store/'
 import router from './router'
-
+import './util/getWeb3';
 
 Vue.use(ElementUI);
 
