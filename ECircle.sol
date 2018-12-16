@@ -28,6 +28,8 @@ contract ECircle{
    uint256 private interestU=2;
    uint256 private borrowingInterestRate=3;
    uint256 private supplyInterestRate=1;
+   
+   event getTokenAndExchangeRateEvent(string tokenType, uint256 exchangeRate); // When vote starts
 
    struct Order {
       uint256 orderNo;
@@ -148,5 +150,9 @@ contract ECircle{
         uint8 userAddr = mapMember[msg.sender];
         require(userAddr>0, "You haven't registered yet, please register first.");
         _;
+    }
+    
+    function getTokenAndExchangeRate() public{
+        emit getTokenAndExchangeRateEvent(TOKEN_TYPE,exchangeRate[TOKEN_TYPE]);
     }
 }
