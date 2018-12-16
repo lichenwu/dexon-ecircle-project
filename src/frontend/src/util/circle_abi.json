@@ -1,0 +1,259 @@
+[
+  {
+      "constant": false,
+      "inputs": [],
+      "name": "balance",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+  },
+  {
+      "constant": false,
+      "inputs": [
+          {
+              "name": "amount",
+              "type": "uint256"
+          }
+      ],
+      "name": "borrow",
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool"
+          }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+  },
+  {
+      "constant": false,
+      "inputs": [],
+      "name": "deposit",
+      "outputs": [],
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "function"
+  },
+  {
+      "constant": false,
+      "inputs": [],
+      "name": "deposit2Contract",
+      "outputs": [],
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "function"
+  },
+  {
+      "constant": false,
+      "inputs": [
+          {
+              "name": "email",
+              "type": "string"
+          }
+      ],
+      "name": "register",
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool"
+          }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+  },
+  {
+      "constant": false,
+      "inputs": [
+          {
+              "name": "amount",
+              "type": "uint256"
+          }
+      ],
+      "name": "supply",
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool"
+          }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+  },
+  {
+      "constant": false,
+      "inputs": [],
+      "name": "withdraw",
+      "outputs": [],
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "function"
+  },
+  {
+      "inputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+  },
+  {
+      "anonymous": false,
+      "inputs": [
+          {
+              "indexed": false,
+              "name": "amountDEX",
+              "type": "uint256"
+          }
+      ],
+      "name": "depositEvent",
+      "type": "event"
+  },
+  {
+      "anonymous": false,
+      "inputs": [
+          {
+              "indexed": false,
+              "name": "amountDEX",
+              "type": "uint256"
+          },
+          {
+              "indexed": false,
+              "name": "amountToken",
+              "type": "int256"
+          }
+      ],
+      "name": "supplyEvent",
+      "type": "event"
+  },
+  {
+      "anonymous": false,
+      "inputs": [
+          {
+              "indexed": false,
+              "name": "amountDEX",
+              "type": "uint256"
+          },
+          {
+              "indexed": false,
+              "name": "amountToken",
+              "type": "int256"
+          }
+      ],
+      "name": "balanceEvent",
+      "type": "event"
+  },
+  {
+      "anonymous": false,
+      "inputs": [
+          {
+              "indexed": false,
+              "name": "amountDEX",
+              "type": "uint256"
+          },
+          {
+              "indexed": false,
+              "name": "amountToken",
+              "type": "int256"
+          }
+      ],
+      "name": "borrowEvent",
+      "type": "event"
+  },
+  {
+      "constant": true,
+      "inputs": [
+          {
+              "name": "dexAmount",
+              "type": "uint256"
+          }
+      ],
+      "name": "dexToToken",
+      "outputs": [
+          {
+              "name": "",
+              "type": "uint256"
+          }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+  },
+  {
+      "constant": true,
+      "inputs": [
+          {
+              "name": "orderNo",
+              "type": "uint256"
+          }
+      ],
+      "name": "getOrder",
+      "outputs": [
+          {
+              "name": "",
+              "type": "uint256"
+          },
+          {
+              "name": "",
+              "type": "uint8"
+          },
+          {
+              "name": "",
+              "type": "string"
+          },
+          {
+              "name": "",
+              "type": "uint256"
+          },
+          {
+              "name": "",
+              "type": "uint256"
+          },
+          {
+              "name": "",
+              "type": "address"
+          }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+  },
+  {
+      "constant": true,
+      "inputs": [],
+      "name": "tokenToDex",
+      "outputs": [
+          {
+              "name": "",
+              "type": "int256"
+          }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+  },
+  {
+      "constant": true,
+      "inputs": [
+          {
+              "name": "",
+              "type": "address"
+          }
+      ],
+      "name": "userWallets",
+      "outputs": [
+          {
+              "name": "dexAmount",
+              "type": "uint256"
+          },
+          {
+              "name": "tokenAmount",
+              "type": "int256"
+          }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+  }
+]
