@@ -23,33 +23,18 @@
   </div>
 </template>
 <script>
+import { mapState, mapActions } from 'vuex'
 
 export default {
   data() {
     return {
-      assets: [
-        {
-          tokenFullName: 'Cobinhood token',
-          rate: 3.5,
-          balance: 1050,
-          price: 5,
-        },
-        {
-          tokenFullName: 'EOS token',
-          rate: 2.5,
-          balance: -5,
-          price: 8,
-        },
-        {
-          tokenFullName: 'Ethereum token',
-          rate: 7.8,
-          balance: 20,
-          price: 40,
-        },
-      ],
     }
   },
+	computed: {
+		...mapState('accountStore', ['assets']),
+	},
   methods: {
+    ...mapActions('accountStore', ['runSupply']),
     clickSupply() {
       this.$prompt('Please input how many DEX to supply', 'Supply', {
         confirmButtonText: 'OK',
@@ -57,6 +42,9 @@ export default {
         inputPattern: /^\d*\.*\d*$/,
         inputErrorMessage: 'Invalid Number'
       }).then(({ value }) => {
+
+        this.runSupply(value);
+
         this.$message({
           type: 'success',
           message: `Your supply ${value} DEX`,

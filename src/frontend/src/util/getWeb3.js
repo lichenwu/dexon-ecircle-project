@@ -7,12 +7,16 @@ const defaultAddress = "0x09969f1fdb49ae33429c47814af7e94883f8c1ec";
 const DEXON_TESTNET_ID = 238;
 const INJECTED = window.dexon || window.ethereum;
 
+let store = null;
 
 const contractHandler = {
   getNetworkId() {
     this.walletHandler.eth.net.getId();
   },
   contractInit,
+  setStore(newStore) {
+    store = newStore;
+  },
 };
 
 async function contractInit(handler, address = defaultAddress) {
@@ -20,13 +24,39 @@ async function contractInit(handler, address = defaultAddress) {
 
   function handleDeposit(response) {
     console.log(response);
-
   }
 
-  setInterval(async function() {
-    const pastDepositEvents = await this.contract.getPastEvents('depositEvent', { fromBlock: 0, toBlock: 'latest' });
-    pastDepositEvents.forEach(handleDeposit);
-  }, 3000);
+  // setInterval(async function() {
+  //   const pastDepositEvents = await handler.contract.subscribe('depositEvent', { fromBlock: 0, toBlock: 'latest' });
+  //   pastDepositEvents.forEach(handleDeposit);
+  // }, 3000);
+  console.log(handler.contract)
+
+  // const depositEvent = handler.contract.methods.deposit();
+  // depositEvent.watch(function(error, result) {
+  //   console.log(result);
+  // });
+
+  handler.contract.events.depositEvent({}, (error, event) => {
+    const { returnValues } = event;
+    const { amountDEX } = returnValues;
+    // const depositAmount = amountDEX / 10 ** 18;
+
+    const depositAmount = window.dekusanWeb3.utils.fromWei(amountDEX.toString(), 'ether')
+    store.dispatch('accountStore/setDeposit', depositAmount, { root: true });
+  })
+
+  handler.contract.events.supplyEvent({}, (error, event) => {
+    console.log('trigger supply');
+    const { returnValues } = event;
+    const { amountDEX, amountToken } = returnValues;
+    // const depositAmount = amountDex / 10 ** 18;
+    const depositAmount = window.dekusanWeb3.utils.fromWei(amountDEX.toString(), 'ether')
+    // const tokenAmount = amountToken / 10 ** 18;
+    const tokenAmount = window.dekusanWeb3.utils.fromWei(amountToken.toString(), 'ether')
+    store.dispatch('accountStore/setDeposit', depositAmount, { root: true });
+    store.dispatch('accountStore/setToken', tokenAmount, { root: true });
+  })
 }
 
 

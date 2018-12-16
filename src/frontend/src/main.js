@@ -4,11 +4,13 @@ import ElementUI from 'element-ui';
 import './element-variables.scss';
 import { store } from './store/'
 import router from './router'
-import './util/getWeb3';
+import handler from './util/getWeb3';
 
 Vue.use(ElementUI);
 
 Vue.config.productionTip = false
+
+handler.setStore(store);
 
 new Vue({
   render: h => h(App),

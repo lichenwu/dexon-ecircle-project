@@ -3,15 +3,18 @@
     <el-row type="flex" class="row-bg">
       <el-col :span="6"><div class="grid-content">
         <h4>Supply Balance</h4>
-        <h2>0 DEX</h2>
+        <h2>{{ balance }} DEX</h2>
       </div></el-col>
     </el-row>
   </div>
 </template>
 <script>
+import { mapState, mapActions } from 'vuex'
 
 export default {
-
+	computed: {
+		...mapState('accountStore', ['balance']),
+	},
 }
 </script>
 
