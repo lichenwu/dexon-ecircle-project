@@ -1,17 +1,9 @@
 <template>
   <div class="balance">
     <el-row type="flex" class="row-bg">
-      <el-col :span="6"><div class="grid-content bg-purple">
+      <el-col :span="6"><div class="grid-content">
         <h4>Supply Balance</h4>
-        <h3>0 DEX</h3>
-      </div></el-col>
-      <el-col :span="6"><div class="grid-content bg-purple-light">
-        <h4>Borrow Balance</h4>
-        <h3>0 DEX</h3>
-      </div></el-col>
-      <el-col :span="6"><div class="grid-content bg-purple">
-        <h4>Availablable to borrow</h4>
-        <h3>0 DEX</h3>
+        <h2>0 DEX</h2>
       </div></el-col>
     </el-row>
   </div>
@@ -27,6 +19,12 @@ export default {
 <style lang="scss" scoped>
 .balance {
   text-align: left;
+
+  .grid-content {
+    border-radius: 8px;
+    background-color: #eee;
+    padding: 5px 20px;
+  }
 }
 </style>
 
