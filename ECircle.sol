@@ -1,7 +1,8 @@
 pragma solidity ^0.4.25;
 
 contract ECircle{
-
+    
+    uint256 constant _18_0 = 1000000000000000000;
    //member
    address[] private members;
    mapping(address => string) private member_mail;
@@ -12,7 +13,9 @@ contract ECircle{
    
    // exchange rate for each token to DEX
    mapping(string=>uint256) private exchangeRate;
-
+    
+   uint256 private ECircleDEX;
+   uint256 private ECircleToken;
     
    // token type
    string private TOKEN_TYPE="COB";
@@ -31,8 +34,8 @@ contract ECircle{
    
    //
    uint256 private interestU=2;
-   uint256 private borrowingInterestRate=3;
-   uint256 private supplyInterestRate=1;
+   uint256 private BORROW_InterestRate;
+   uint256 private SUPPLY_InterestRate;
 
 
    //GUI event
@@ -55,12 +58,26 @@ contract ECircle{
        uint256 dexAmount;
        int256 tokenAmount;
    }
+
+    modifier validateDexAmount(uint256 amount){
+        require(userWallets[msg.sender].dexAmount > amount, "Your DEX amount not enough, please deposit.");
+        _;
+    }
+    
+    modifier isValidateUser {
+        uint8 userAddr = mapMember[msg.sender];
+        require(userAddr>0, "You haven't registered yet, please register first.");
+        _;
+    }
+   
     
     constructor() public{
         exchangeRate[TOKEN_TYPE]=30;
         interestU=2;
-        borrowingInterestRate=3;
-        supplyInterestRate=1;
+        BORROW_InterestRate=3;
+        SUPPLY_InterestRate=2;
+     //   ECircleDEX = 500 * _18_0;
+      //  ECircleToken = ECircleDEX * exchangeRate[TOKEN_TYPE] * _18_0;
     }
     
     /*
@@ -94,9 +111,17 @@ contract ECircle{
     }
     
     /*
+    initial cash to contract
+    */
+    function deposit2Contract() public payable{
+        //userWallets[msg.sender].dexAmount = userWallets[msg.sender].dexAmount + msg.value;
+        //emit depositEvent(userWallets[msg.sender].dexAmount);
+    }
+    
+    /*
     withdraw DEX
     */
-    function withdraw() public validateDexAmount payable{
+    function withdraw() public validateDexAmount(0) payable{
        msg.sender.transfer(userWallets[msg.sender].dexAmount);
        userWallets[msg.sender].dexAmount = 0;
     }
@@ -104,13 +129,13 @@ contract ECircle{
     /*
     token amount 
     */
-    function dexToToken(uint256 dexAmount, string memory tokenType) public view returns (uint256){
-        uint256 tokenAmount = dexAmount * exchangeRate[tokenType];
+    function dexToToken(uint256 dexAmount) public view returns (uint256){
+        uint256 tokenAmount = dexAmount * exchangeRate[TOKEN_TYPE];
         return tokenAmount;
     }
     
-    function tokenToDex(string memory tokenType) public view returns(int256){
-        int256 convDEX = userWallets[msg.sender].tokenAmount / int256(exchangeRate[tokenType]);
+    function tokenToDex() public view returns(int256){
+        int256 convDEX = userWallets[msg.sender].tokenAmount / int256(exchangeRate[TOKEN_TYPE]);
         return convDEX;
     }
   /*  function tokenToDex_exec(string memory tokenType) public view returns(uint256){
@@ -118,31 +143,36 @@ contract ECircle{
         return dexAmount;
     }*/
     
-    /*function calInterest() private returns uint256{
+   function calInterest(int256 convDEX) private pure returns (int256){
         //cal borrow
-        for(uint256 i=0;i<userSupplyOrder[msg.sender].length;i++){
-            
+        if(convDEX < 0){
+            convDEX = convDEX + (convDEX * -1) / 20;
+        }else{
+            convDEX = convDEX + (convDEX) / 33;
         }
-    }*/
+        return convDEX;
+       /* for(uint256 i=0;i<userSupplyOrder[msg.sender].length;i++){
+            
+        }*/
+    }
     
     /* request */
-    function borrow(string memory tokenType, uint256 amount, uint256 interest) 
+    function borrow(uint256 amount) 
         public
-        isValidateUser
-        validateDexAmount
+       // isValidateUser
+        validateDexAmount(amount)
         returns (bool){
         //genOrder(amount, tokenType, interest, ORDER_TYPE_LOAN);
         
-        require(userWallets[msg.sender].dexAmount > amount, "Not enough DEX!");
         
         //gen order
         Order memory one;
 
         one.orderNo=genOrderNo();
         one.orderType=ORDER_TYPE_BORROW;
-        one.token = tokenType;
-        one.amount = amount;
-        one.interest = interest;
+        one.token = TOKEN_TYPE;
+        one.amount = userWallets[msg.sender].dexAmount;
+        one.interest = BORROW_InterestRate;
         one.reqUser = msg.sender;
 
         ordersSeqArr.push(one.orderNo);
@@ -152,16 +182,20 @@ contract ECircle{
         
         
         userWallets[msg.sender].tokenAmount = userWallets[msg.sender].tokenAmount 
-        - int256(dexToToken(amount,TOKEN_TYPE));
+        - int256(dexToToken(amount) * 2);
         userWallets[msg.sender].dexAmount =  userWallets[msg.sender].dexAmount - amount;
+       
+       
+        //ECircleDEX = ECircleDEX + amount;
+       // ECircleToken = ECircleToken - dexToToken(userWallets[msg.sender].dexAmount)*2;
+       
         
         emit borrowEvent(userWallets[msg.sender].dexAmount, userWallets[msg.sender].tokenAmount);
     }
-    
-    function supply(string memory tokenType, uint256 amount, uint256 interest) 
+    function supply(uint256 amount) 
         public
-        isValidateUser
-        validateDexAmount
+        //isValidateUser
+        validateDexAmount(amount)
         returns (bool){
         
         require(userWallets[msg.sender].dexAmount > amount, "Not enough DEX!");
@@ -171,9 +205,9 @@ contract ECircle{
 
         one.orderNo=genOrderNo();
         one.orderType=ORDER_TYPE_SUPPLY;
-        one.token = tokenType;
+        one.token = TOKEN_TYPE;
         one.amount = amount;
-        one.interest = interest;
+        one.interest = SUPPLY_InterestRate;
         one.reqUser = msg.sender;
 
         ordersSeqArr.push(one.orderNo);
@@ -185,18 +219,23 @@ contract ECircle{
         
         userWallets[msg.sender].dexAmount =  userWallets[msg.sender].dexAmount - amount;
         userWallets[msg.sender].tokenAmount = userWallets[msg.sender].tokenAmount 
-        + int256(dexToToken(amount,TOKEN_TYPE));
+        + int256(dexToToken(amount));
+        
+       // ECircleDEX = ECircleDEX + amount;
+        
+        //ECircleToken = ECircleToken + dexToToken(amount);
         
         emit supplyEvent(userWallets[msg.sender].dexAmount, userWallets[msg.sender].tokenAmount);
     }
     
     function balance() public {
         // token to DEX
-        int256 convDEX = tokenToDex(TOKEN_TYPE);
+        int256 convDEX = tokenToDex();
+        convDEX = calInterest(convDEX);
         if(convDEX < 0){
-            userWallets[msg.sender].dexAmount = userWallets[msg.sender].dexAmount - uint256(tokenToDex(TOKEN_TYPE));
+            userWallets[msg.sender].dexAmount = userWallets[msg.sender].dexAmount + uint256((convDEX/2) * -1);
         }else{
-            userWallets[msg.sender].dexAmount = userWallets[msg.sender].dexAmount + uint256(tokenToDex(TOKEN_TYPE));
+            userWallets[msg.sender].dexAmount = userWallets[msg.sender].dexAmount + uint256(convDEX);
         }
         
         userWallets[msg.sender].tokenAmount = 0;
@@ -237,18 +276,7 @@ contract ECircle{
         return ++orderNoSeq;
     }
      
-    modifier validateDexAmount{
-        uint256 amount = userWallets[msg.sender].dexAmount;
-        require(amount>0, "Your DEX amount is 0, please deposit.");
-        _;
-    }
-    
-    modifier isValidateUser {
-        uint8 userAddr = mapMember[msg.sender];
-        require(userAddr>0, "You haven't registered yet, please register first.");
-        _;
-    }
-   
+
     
         
 }
